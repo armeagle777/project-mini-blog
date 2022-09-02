@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 const PostPage = ({ posts, handelDelete }) => {
     const { id } = useParams();
     const post = posts.find((post) => post.id === id);
+    const navigate = useNavigate();
 
     return (
         <main className='PostPage'>
@@ -13,7 +14,13 @@ const PostPage = ({ posts, handelDelete }) => {
                         <h2>{post.title}</h2>
                         <p className='postDate'>{post.dateTime}</p>
                         <p className='post.body'>{post.body}</p>
-                        <button onClick={() => handelDelete(post.id)}>
+                        <Link to={`/edit/${post.id}`}>
+                            <button className='editButton'>Edit post</button>
+                        </Link>
+                        <button
+                            className='deleteButton'
+                            onClick={() => handelDelete(post.id)}
+                        >
                             Delete Post
                         </button>
                     </>

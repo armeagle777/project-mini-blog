@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
 import About from './About';
+import api from './api/posts';
 import './App.css';
+import EditPost from './EditPost';
 import Footer from './Footer';
 import Header from './Header';
 import Home from './Home';
@@ -13,56 +15,65 @@ import NotFound from './NotFound';
 import PostPage from './PostPage';
 
 const App = () => {
-    const [posts, setPosts] = useState([
-        {
-            id: '1',
-            title: 'Բարև կյանք',
-            dateTime: 'July 01, 2021 11:17:36 AM',
-            body: 'asdadsa asdasd!',
-        },
-        {
-            id: '2',
-            title: 'Ո՞նց ես արև',
-            dateTime: 'July 01, 2021 11:17:36 AM',
-            body: 'asdadsa asdasd asdasdasd asda asdasdasd asdasdasdasd asd  asdasd asdasd',
-        },
-        {
-            id: '3',
-            title: 'Ի՞նչ կա չկա',
-            dateTime: 'July 01, 2021 11:17:36 AM',
-            body: 'asdadsa asdasd asdasdasd asda asdasdasd asdasdasdasd asd  asdasd asdasd',
-        },
-        {
-            id: '4',
-            title: 'Սովորական',
-            dateTime: 'July 01, 2021 11:17:36 AM',
-            body: 'asdadsa asdasd asdasdasd asda asdasdasd asdasdasdasd asd  asdasd asdasd',
-        },
-    ]);
+    const [posts, setPosts] = useState([]);
 
     const [search, setSearch] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [postTitle, setPostTitle] = useState('');
     const [postBody, setPostBody] = useState('');
+    const [editTitle, setEditTitle] = useState('');
+    const [editBody, setEditBody] = useState('');
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await api.get('/posts');
+                setPosts(response.data);
+            } catch (err) {
+                if (err.response) {
+                    console.log('err.response:::::: ', err.response);
+
+                    console.log(
+                        'err.response.headers:::::: ',
+                        err.response.headers
+                    );
+                    console.log('err.response.data:::::: ', err.response.data);
+                    console.log(
+                        'err.response.status:::::: ',
+                        err.response.status
+                    );
+                } else {
+                    console.log('err:::::: ', err.message);
+                }
+            }
+        };
+        fetchPosts();
+    }, []);
 
     useEffect(() => {
         const filteredPosts = posts.filter(
             (post) =>
-                post.body.toLocaleLowerCase().includes(search) ||
-                post.title.toLocaleLowerCase().includes(search)
+                post.body.toLowerCase().includes(search) ||
+                post.title.toLowerCase().includes(search)
         );
 
         setSearchResults(filteredPosts.reverse());
     }, [search, posts]);
 
     const navigate = useNavigate();
-    const handelDelete = (id) => {
-        const newPosts = posts.filter((post) => post.id !== id);
-        setPosts(newPosts);
-        navigate('/', { replace: true });
+
+    const handelDelete = async (id) => {
+        try {
+            await api.delete(`/posts/${id}`);
+            const newPosts = posts.filter((post) => post.id !== id);
+            setPosts(newPosts);
+            navigate('/', { replace: true });
+        } catch (error) {
+            console.log('error:::::: ', error);
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const dateTime = format(new Date(), 'MMMM dd, yyyy pp');
         if (postTitle && postBody) {
@@ -73,10 +84,42 @@ const App = () => {
                 dateTime,
             };
 
-            setPosts([...posts, newPost]);
-            setPostTitle('');
-            setPostBody('');
-            navigate('/', { replace: true });
+            try {
+                const response = await api.post('/posts', newPost);
+                setPosts([...posts, response.data]);
+                setPostTitle('');
+                setPostBody('');
+                navigate('/', { replace: true });
+            } catch (error) {
+                console.log('error:::::: ', error);
+            }
+        }
+    };
+
+    const handleEdit = async (id) => {
+        if (editTitle && editBody) {
+            try {
+                const dateTime = format(new Date(), 'MMMM dd, yyyy pp');
+                const editPost = {
+                    id,
+                    title: editTitle,
+                    body: editBody,
+                    dateTime,
+                };
+
+                const updatedPost = await api.put(`/posts/${id}`, editPost);
+
+                setPosts(
+                    posts.map((post) =>
+                        post.id === id ? { ...updatedPost.data } : post
+                    )
+                );
+                setEditTitle('');
+                setEditBody('');
+                navigate('/', { replace: true });
+            } catch (error) {
+                console.log('error:::::: ', error.message);
+            }
         }
     };
 
@@ -103,6 +146,19 @@ const App = () => {
                     path='/post/:id'
                     element={
                         <PostPage posts={posts} handelDelete={handelDelete} />
+                    }
+                />
+                <Route
+                    path='/edit/:id'
+                    element={
+                        <EditPost
+                            posts={posts}
+                            handleEdit={handleEdit}
+                            editTitle={editTitle}
+                            editBody={editBody}
+                            setEditTitle={setEditTitle}
+                            setEditBody={setEditBody}
+                        />
                     }
                 />
                 <Route path='*' element={<NotFound />} />
