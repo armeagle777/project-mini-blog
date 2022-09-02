@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useData } from './context/DataContext';
 
-const EditPost = ({
-    posts,
-    handleEdit,
-    editTitle,
-    editBody,
-    setEditTitle,
-    setEditBody,
-}) => {
+const EditPost = () => {
+    const {
+        posts,
+        handleEdit,
+        editTitle,
+        editBody,
+        setEditTitle,
+        setEditBody,
+    } = useData();
     const { id } = useParams();
     const post = posts.find((post) => post.id === id);
     const canSubmit = editTitle && editBody;

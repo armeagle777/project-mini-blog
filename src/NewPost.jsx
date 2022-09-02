@@ -1,12 +1,9 @@
 import React from 'react';
+import { useData } from './context/DataContext';
 
-const NewPost = ({
-    postTitle,
-    setPostTitle,
-    postBody,
-    setPostBody,
-    handleSubmit,
-}) => {
+const NewPost = () => {
+    const { postTitle, setPostTitle, postBody, setPostBody, handleSubmit } =
+        useData();
     const canSubmit = postTitle && postBody;
     return (
         <main className='NewPost'>

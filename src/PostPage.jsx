@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useData } from './context/DataContext';
 
-const PostPage = ({ posts, handelDelete }) => {
+const PostPage = () => {
+    const { posts, handelDelete } = useData();
     const { id } = useParams();
     const post = posts.find((post) => post.id === id);
     const navigate = useNavigate();

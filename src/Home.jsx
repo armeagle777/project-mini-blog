@@ -1,7 +1,9 @@
 import React from 'react';
+import { useData } from './context/DataContext';
 import Feed from './Feed';
 
-const Home = ({ posts, isLoading, fetchError }) => {
+const Home = () => {
+    const { isLoading, fetchError, searchResults } = useData();
     return (
         <main className='Home'>
             {isLoading && <p className='statusMsg'>Loading posts...</p>}
@@ -12,8 +14,8 @@ const Home = ({ posts, isLoading, fetchError }) => {
             )}
             {!isLoading &&
                 !fetchError &&
-                (posts.length ? (
-                    <Feed posts={posts} />
+                (searchResults.length ? (
+                    <Feed posts={searchResults} />
                 ) : (
                     <p className='statusMsg' style={{ marginTop: '2rem' }}>
                         No posts to display
