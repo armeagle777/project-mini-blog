@@ -14,6 +14,9 @@ import NewPost from './NewPost';
 import NotFound from './NotFound';
 import PostPage from './PostPage';
 
+import useAxiosFetch from './hooks/useAxiosFetch';
+import useWindowSize from './hooks/useWindowSize';
+
 const App = () => {
     const [posts, setPosts] = useState([]);
 
@@ -23,32 +26,14 @@ const App = () => {
     const [postBody, setPostBody] = useState('');
     const [editTitle, setEditTitle] = useState('');
     const [editBody, setEditBody] = useState('');
+    const { width } = useWindowSize();
+    const { data, fetchError, isLoading } = useAxiosFetch(
+        'http://localhost:3500/posts'
+    );
 
     useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const response = await api.get('/posts');
-                setPosts(response.data);
-            } catch (err) {
-                if (err.response) {
-                    console.log('err.response:::::: ', err.response);
-
-                    console.log(
-                        'err.response.headers:::::: ',
-                        err.response.headers
-                    );
-                    console.log('err.response.data:::::: ', err.response.data);
-                    console.log(
-                        'err.response.status:::::: ',
-                        err.response.status
-                    );
-                } else {
-                    console.log('err:::::: ', err.message);
-                }
-            }
-        };
-        fetchPosts();
-    }, []);
+        setPosts(data);
+    }, [data]);
 
     useEffect(() => {
         const filteredPosts = posts.filter(
@@ -125,10 +110,19 @@ const App = () => {
 
     return (
         <div className='App'>
-            <Header title='React Js Blog' />
+            <Header title='React Js Blog' width={width} />
             <Nav search={search} setSearch={setSearch} />
             <Routes>
-                <Route path='/' element={<Home posts={searchResults} />} />
+                <Route
+                    path='/'
+                    element={
+                        <Home
+                            isLoading={isLoading}
+                            fetchError={fetchError}
+                            posts={searchResults}
+                        />
+                    }
+                />
                 <Route path='/about' element={<About />} />
                 <Route
                     path='/post'
